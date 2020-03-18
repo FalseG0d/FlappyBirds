@@ -29,7 +29,7 @@ public class Bird : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D collider)
     {
-        //CMDebug.TextPopMouse("Dead!!");
+        CMDebug.TextPopupMouse("Dead!!");
 
     }
 }
