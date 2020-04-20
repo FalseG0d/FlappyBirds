@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Level : MonoBehaviour
 {
@@ -10,12 +11,15 @@ public class Level : MonoBehaviour
     const float PIPE_MOVE_SPEED = 50f;
     const float PIPE_DESTROY_XPOSITION = -126f;
     const float PIPE_SPAWN_XPOSITION = 126f;
-
+    private static Level instance;
     List<Pipe> pipeList;
-    float pipeSpawned;
+    public Text scoreText;
+    int pipeSpawned;
+    int pipesPassedCount;
     float pipeSpawnTimer;
     float pipeSpawnTimerMax;
     float gapSize;
+    const float BIRD_X_POSITION=0f;
 
     public enum Difficulty
     {
@@ -24,9 +28,17 @@ public class Level : MonoBehaviour
         Hard,
         Impossible,
     }
+    public static Level GetInstance(){
+      return instance;
+    }
+    public int GetPipesSpawned(){
+      return pipeSpawned;
+    }
 
     void Awake()
     {
+        instance=this;
+        pipesPassedCount=0;
         pipeList = new List<Pipe>();
         pipeSpawnTimerMax = 1f;
         SetDifficulty(Difficulty.Easy);
@@ -41,6 +53,11 @@ public class Level : MonoBehaviour
     {
         HandlePipeMovenment();
         HandlePipeSpawning();
+        HandleUI();
+    }
+
+    void HandleUI(){
+      scoreText.text=GetPipesPassedCount().ToString();      
     }
 
     void SetDifficulty(Difficulty difficulty)
@@ -56,14 +73,18 @@ public class Level : MonoBehaviour
                 pipeSpawnTimerMax = 1.1f;
                 break;
             case Difficulty.Hard:
-                gapSize = 30;
+                gapSize = 33;
                 pipeSpawnTimerMax = 1.0f;
                 break;
             case Difficulty.Impossible:
-                gapSize = 20;
+                gapSize = 24;
                 pipeSpawnTimerMax = 0.8f;
                 break;
         }
+    }
+
+    public int GetPipesPassedCount(){
+      return pipesPassedCount/2;
     }
 
     Difficulty GetDifficulty()
@@ -81,7 +102,7 @@ public class Level : MonoBehaviour
     void HandlePipeSpawning()
     {
         pipeSpawnTimer -= Time.deltaTime;
-        
+
         if (pipeSpawnTimer < 0)
         {
             pipeSpawnTimer += pipeSpawnTimerMax;
@@ -92,7 +113,7 @@ public class Level : MonoBehaviour
             float maxHeight = totalHeight - gapSize / 2 - heightEdgeLimit;
 
             float height = Random.Range(minHeight, maxHeight);
-          
+
             CreateGapPipes(height, gapSize, PIPE_SPAWN_XPOSITION);
         }
     }
@@ -103,7 +124,12 @@ public class Level : MonoBehaviour
         for (int i = 0; i < pipeList.Count; i++)
         {
             pipe = pipeList[i];
+            bool isToTheRightOfBird=pipe.GetXPosition()>BIRD_X_POSITION;
             pipe.Move();
+
+            if (isToTheRightOfBird&&pipe.GetXPosition()<=BIRD_X_POSITION){
+              pipesPassedCount+=1;
+            }
             if (pipe.GetXPosition() < PIPE_DESTROY_XPOSITION)
             {
                 pipe.DestroySelf();
