@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using CodeMonkey;
+using CodeMonkey.Utils;
 
 public class Level : MonoBehaviour
 {
@@ -12,13 +14,17 @@ public class Level : MonoBehaviour
     const float PIPE_DESTROY_XPOSITION = -126f;
     const float PIPE_SPAWN_XPOSITION = 126f;
     private static Level instance;
+    public GameObject gameOver;
     List<Pipe> pipeList;
+    public Text gameOverScoreText;
+    public Button retry;
     public Text scoreText;
     int pipeSpawned;
     int pipesPassedCount;
     float pipeSpawnTimer;
     float pipeSpawnTimerMax;
     float gapSize;
+    State state;
     const float BIRD_X_POSITION=0f;
 
     public enum Difficulty
@@ -27,6 +33,11 @@ public class Level : MonoBehaviour
         Medium,
         Hard,
         Impossible,
+    }
+    enum State{
+      Waiting,
+      Alive,
+      Dead
     }
     public static Level GetInstance(){
       return instance;
@@ -42,22 +53,38 @@ public class Level : MonoBehaviour
         pipeList = new List<Pipe>();
         pipeSpawnTimerMax = 1f;
         SetDifficulty(Difficulty.Easy);
+        state=State.Waiting;
+        Hide();
     }
 
     void Start()
     {
         //CreateGapPipes(50f, 20f, 20f);
+        Bird.GetInstance().OnDeath+=Bird_OnDied;
+        Bird.GetInstance().OnStart+=Bird_OnStartPlaying;
+    }
+    void Bird_OnStartPlaying(object sender,System.EventArgs e){
+      state=State.Alive;
+    }
+    void Bird_OnDied(object sender,System.EventArgs e){
+      //throw new System.NotImplementedException();
+      //Debug.Log("Dead");
+      state=State.Dead;
+      gameOverScoreText.text=(Level.GetInstance().GetPipesPassedCount()).ToString();
+      Show();
     }
 
     void Update()
     {
-        HandlePipeMovenment();
-        HandlePipeSpawning();
-        HandleUI();
+        if(state==State.Alive){
+          HandlePipeMovenment();
+          HandlePipeSpawning();
+          HandleUI();
+      }
     }
 
     void HandleUI(){
-      scoreText.text=GetPipesPassedCount().ToString();      
+      scoreText.text=(GetPipesPassedCount()).ToString();
     }
 
     void SetDifficulty(Difficulty difficulty)
@@ -139,6 +166,12 @@ public class Level : MonoBehaviour
         }
     }
 
+    void Hide(){
+      gameOver.SetActive(false);
+    }
+    void Show(){
+      gameOver.SetActive(true);
+    }
     void CreateGapPipes(float gapY, float gapSize, float xPosition)
     {
         CreatePipe(gapY - gapSize / 2, xPosition, true);
