@@ -9,22 +9,9 @@ public class GameHandler : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        int count = 0;
 
-        /*FunctionPeriodic.Create(() => {
-            CMDebug.TextPopupMouse("Ding! " + count);
-            count++;
-        }, .300f);*/
+      Debug.Log(PlayerPrefs.GetInt("highScore"));
 
-        //GameObject gameObject = new GameObject("Pipe", typeof(SpriteRenderer));
-        //gameObject.GetComponent<SpriteRenderer>().sprite = GameAssets.GetInstance().pipeHeadSprite;
-
-        
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 }

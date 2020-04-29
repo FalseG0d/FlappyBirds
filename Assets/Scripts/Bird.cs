@@ -56,12 +56,17 @@ public class Bird : MonoBehaviour
     void Jump()
     {
         birdRigidbody2D.velocity = Vector2.up * JUMP_AMOUNT;
+        SoundManager.PlaySound(SoundManager.Sound.BirdJump);
 
     }
 
     void OnTriggerEnter2D(Collider2D collider)
     {
+        SoundManager.PlaySound(SoundManager.Sound.BirdDead);
         birdRigidbody2D.bodyType=RigidbodyType2D.Static;
-        if(OnDeath!=null)OnDeath(this,EventArgs.Empty);
+
+        if(OnDeath!=null){
+          OnDeath(this,EventArgs.Empty);
+        }
     }
 }

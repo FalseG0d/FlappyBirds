@@ -13,12 +13,15 @@ public class Level : MonoBehaviour
     const float PIPE_MOVE_SPEED = 50f;
     const float PIPE_DESTROY_XPOSITION = -126f;
     const float PIPE_SPAWN_XPOSITION = 126f;
+    const float GROUND_DESTROY_XPOSITION = -236f;
+    const float GROUND_SPAWN_X_POSITION = 126f;
     private static Level instance;
     public GameObject gameOver;
     List<Pipe> pipeList;
+    List<Transform> groundList;
     public Text gameOverScoreText;
-    public Button retry;
     public Text scoreText;
+    public Text highScoreText;
     int pipeSpawned;
     int pipesPassedCount;
     float pipeSpawnTimer;
@@ -60,6 +63,7 @@ public class Level : MonoBehaviour
     void Start()
     {
         //CreateGapPipes(50f, 20f, 20f);
+        highScoreText.text="Highscore: "+Score.GetHighScore().ToString();
         Bird.GetInstance().OnDeath+=Bird_OnDied;
         Bird.GetInstance().OnStart+=Bird_OnStartPlaying;
     }
@@ -69,8 +73,14 @@ public class Level : MonoBehaviour
     void Bird_OnDied(object sender,System.EventArgs e){
       //throw new System.NotImplementedException();
       //Debug.Log("Dead");
+      Score.SetHighScore(Level.GetInstance().GetPipesPassedCount());
       state=State.Dead;
-      gameOverScoreText.text=(Level.GetInstance().GetPipesPassedCount()).ToString();
+      int score=Level.GetInstance().GetPipesPassedCount();
+      if(score>=Score.GetHighScore()){
+        gameOverScoreText.text="New Highscore!!\n"+(score).ToString();
+      }else{
+        gameOverScoreText.text=(score).ToString();
+      }
       Show();
     }
 
@@ -80,7 +90,43 @@ public class Level : MonoBehaviour
           HandlePipeMovenment();
           HandlePipeSpawning();
           HandleUI();
+          SpawnInitialGround();
+          HandleGround();
       }
+    }
+
+    void SpawnInitialGround(){
+      groundList=new List<Transform>();
+      Transform groundTransform;
+      float groundY=-44f;
+      float groundWidth=230f;
+      groundTransform=Instantiate(GameAssets.GetInstance().pfGround,new Vector3(0,groundY,0),Quaternion.identity);
+      groundList.Add(groundTransform);
+      groundTransform=Instantiate(GameAssets.GetInstance().pfGround,new Vector3(groundWidth,groundY,0),Quaternion.identity);
+      groundList.Add(groundTransform);
+      groundTransform=Instantiate(GameAssets.GetInstance().pfGround,new Vector3(groundWidth*2,groundY,0),Quaternion.identity);
+      groundList.Add(groundTransform);
+    }
+
+    private void HandleGround() {
+        foreach (Transform groundTransform in groundList) {
+            groundTransform.position += new Vector3(-1, 0, 0) * PIPE_MOVE_SPEED * Time.deltaTime;
+
+            if (groundTransform.position.x < GROUND_DESTROY_XPOSITION) {
+                // Ground passed the left side, relocate on right side
+                // Find right most X position
+                float rightMostXPosition = -100f;
+                for (int i = 0; i < groundList.Count; i++) {
+                    if (groundList[i].position.x > rightMostXPosition) {
+                        rightMostXPosition = groundList[i].position.x;
+                    }
+                }
+
+                // Place Ground on the right most position
+                float groundWidth = 236f;
+                groundTransform.position = new Vector3(rightMostXPosition + groundWidth, groundTransform.position.y, groundTransform.position.z);
+            }
+        }
     }
 
     void HandleUI(){
@@ -154,8 +200,9 @@ public class Level : MonoBehaviour
             bool isToTheRightOfBird=pipe.GetXPosition()>BIRD_X_POSITION;
             pipe.Move();
 
-            if (isToTheRightOfBird&&pipe.GetXPosition()<=BIRD_X_POSITION){
+            if (isToTheRightOfBird&&pipe.GetXPosition()<BIRD_X_POSITION){
               pipesPassedCount+=1;
+              SoundManager.PlaySound(SoundManager.Sound.BirdScore);
             }
             if (pipe.GetXPosition() < PIPE_DESTROY_XPOSITION)
             {
@@ -235,7 +282,7 @@ public class Level : MonoBehaviour
 
         public float GetXPosition()
         {
-            return pipeHeadTransform.position.x;
+            return pipeHeadTransform.position.x+5;
         }
         public void DestroySelf()
         {

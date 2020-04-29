@@ -6,6 +6,26 @@ public class Button : MonoBehaviour
 {
     public void Retry()
     {
-      UnityEngine.SceneManagement.SceneManager.LoadScene("GameScene");
+      SoundManager.PlaySound(SoundManager.Sound.ButtonPush);
+      Loader.Load(Loader.Scene.GameScene);
     }
+
+    public void Play()
+    {
+      SoundManager.PlaySound(SoundManager.Sound.ButtonPush);
+      Loader.Load(Loader.Scene.GameScene);
+    }
+
+    public void Quit()
+    {
+      SoundManager.PlaySound(SoundManager.Sound.ButtonPush);
+      Application.Quit();
+    }
+
+    public void Menu()
+    {
+      SoundManager.PlaySound(SoundManager.Sound.ButtonPush);
+      Loader.Load(Loader.Scene.MainMenu);
+    }
+
 }
